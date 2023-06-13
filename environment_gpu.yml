@@ -1,0 +1,29 @@
+name: hw3_env_gpu
+channels:
+  - pytorch
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.9
+  - cython
+  - pytest
+  - cudatoolkit
+  - freetype
+  - pip
+  - pip:
+    - --extra-index-url https://download.pytorch.org/whl/lts/1.8/cu111
+    - torch==1.8.2
+    - torchvision==0.9.2
+    - numpy==1.24.2
+    - scikit-learn==1.0.2
+    - jupyter
+    - jupyterlab
+    - matplotlib==3.7.1
+    - pandas
+    - pillow==9.4.0
+    - tqdm
+    - swig # for box2d on Windows
+    - nbmerge
+    - pytest-xdist
+    - atari-py
+    - box2d-py
