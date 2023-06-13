@@ -194,11 +194,12 @@ def generate_from_model(model, start_sequence, n_chars, char_maps, T):
             x.unsqueeze_(0)
             x = x.to(device=device, dtype=torch.float)
             y, h = model(x, h)
-            y.squeeze_(0)
-            y = y[-1]
-            y = hot_softmax(y, dim=0, temperature=T)
+            #y.squeeze_(0)
+            #y = y[-1]
+            #y = hot_softmax(y, dim=0, temperature=T)
+            y = hot_softmax(y[0, -1, :], 0, T)
             y = torch.multinomial(y, 1)
-            y = idx_to_char[y.item()]
+            y = idx_to_char[int(y)]
             out_text += y
 
     # ========================
@@ -249,14 +250,20 @@ class MultilayerGRU(nn.Module):
         device = 'cuda'
         for i in range(n_layers):
             # Input to hidden layer linear transformations
-            xz = nn.Linear(in_dim if i == 0 else h_dim, h_dim)
-            xr = nn.Linear(in_dim if i == 0 else h_dim, h_dim)
-            xg = nn.Linear(in_dim if i == 0 else h_dim, h_dim)
+            xz = nn.Linear(in_dim if i == 0 else h_dim, h_dim, bias=False).to(device)
+            nn.init.xavier_uniform_(xz.weight)
+            xr = nn.Linear(in_dim if i == 0 else h_dim, h_dim, bias=False).to(device)
+            nn.init.xavier_uniform_(xr.weight)
+            xg = nn.Linear(in_dim if i == 0 else h_dim, h_dim, bias=False).to(device)
+            nn.init.xavier_uniform_(xg.weight)
 
             # Hidden to hidden layer linear transformations
-            hz = nn.Linear(h_dim, h_dim, bias=False).to(device)
-            hr = nn.Linear(h_dim, h_dim, bias=False).to(device)
-            hg = nn.Linear(h_dim, h_dim, bias=False).to(device)
+            hz = nn.Linear(h_dim, h_dim).to(device)
+
+            hr = nn.Linear(h_dim, h_dim).to(device)
+
+            hg = nn.Linear(h_dim, h_dim).to(device)
+
 
             # Store layer parameters
             self.layer_params.append({
