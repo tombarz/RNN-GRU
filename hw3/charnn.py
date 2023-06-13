@@ -156,6 +156,8 @@ def hot_softmax(y, dim=0, temperature=1.0):
     return result
 
 
+
+
 def generate_from_model(model, start_sequence, n_chars, char_maps, T):
     """
     Generates a sequence of chars based on a given model and a start sequence.
@@ -187,21 +189,16 @@ def generate_from_model(model, start_sequence, n_chars, char_maps, T):
     # necessary for this. Best to disable tracking for speed.
     # See torch.no_grad().
     # ====== YOUR CODE: ======
-    h = None
+    sample = [start_sequence]
     with torch.no_grad():
+        h = None
         for i in range(n_chars - len(start_sequence)):
-            x = chars_to_onehot(out_text, char_to_idx)
-            x.unsqueeze_(0)
-            x = x.to(device=device, dtype=torch.float)
-            y, h = model(x, h)
-            #y.squeeze_(0)
-            #y = y[-1]
-            #y = hot_softmax(y, dim=0, temperature=T)
-            y = hot_softmax(y[0, -1, :], 0, T)
-            y = torch.multinomial(y, 1)
-            y = idx_to_char[int(y)]
-            out_text += y
-
+            input = chars_to_onehot(out_text, char_to_idx).to(device=device).unsqueeze(0).to(dtype=torch.float32)
+            y, h = model(input, h)
+            probabilities = hot_softmax(y[0, -1, :], 0, T)   # take last item in seq
+            out_text = idx_to_char[int(torch.multinomial(probabilities, 1))]
+            sample.append(out_text)
+        out_text = ''.join(sample)
     # ========================
 
     return out_text
